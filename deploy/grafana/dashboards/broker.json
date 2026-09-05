@@ -1,0 +1,46 @@
+{
+  "title": "Event Streaming Broker",
+  "uid": "esb-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Messages Published/sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(broker_messages_published_total[1m])) by (topic)", "legendFormat": "{{topic}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Messages Consumed/sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(broker_messages_consumed_total[1m])) by (topic)", "legendFormat": "{{topic}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Publish Latency p99",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum(rate(broker_publish_latency_seconds_bucket[1m])) by (le, topic))", "legendFormat": "{{topic}}" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "DLQ Messages/sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(broker_dlq_messages_total[1m])) by (topic)", "legendFormat": "{{topic}}" }
+      ]
+    }
+  ]
+}

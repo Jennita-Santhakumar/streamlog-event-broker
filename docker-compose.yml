@@ -1,0 +1,95 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: esb
+      POSTGRES_PASSWORD: esb
+      POSTGRES_DB: esb
+    ports:
+      - "5502:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esb -d esb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: .
+    command: ["./migrate", "up"]
+    environment:
+      DATABASE_URL: postgres://esb:esb@postgres:5432/esb?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  broker:
+    build: .
+    command: ["./broker"]
+    ports:
+      - "8070:8080"
+    environment:
+      DATABASE_URL: postgres://esb:esb@postgres:5432/esb?sslmode=disable
+      HTTP_PORT: "8080"
+      DATA_DIR: /data
+      CORS_ORIGINS: http://localhost:5243
+      LOG_LEVEL: info
+      BROKER_ID: "1"
+      RETENTION_CHECK_INTERVAL_SECONDS: "60"
+      SEGMENT_MAX_BYTES: "16777216"
+      SHUTDOWN_GRACE_SECONDS: "15"
+    volumes:
+      - broker_data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    ports:
+      - "9099:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    depends_on:
+      - broker
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3016:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8070
+    ports:
+      - "5243:5173"
+    depends_on:
+      - broker
+
+volumes:
+  postgres_data:
+  broker_data:
+  grafana_data:

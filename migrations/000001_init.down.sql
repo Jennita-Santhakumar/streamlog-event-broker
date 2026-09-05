@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS dlq;
+DROP TABLE IF EXISTS consumer_offsets;
+DROP TABLE IF EXISTS consumer_groups;
+DROP TABLE IF EXISTS message_index;
+DROP TABLE IF EXISTS partitions;
+DROP TABLE IF EXISTS topics;

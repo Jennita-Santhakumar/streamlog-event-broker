@@ -1,5 +1,7 @@
 # Distributed Event Streaming Broker
 
+> **Maintained by [Jennita S](https://github.com/Jennita-Santhakumar)** · [LinkedIn](https://linkedin.com/in/jennitas) · jennitasanthakumar0@gmail.com
+
 A Kafka-style event streaming broker built in Go: topic/partition management, a real on-disk
 append-only log (not an in-memory slice), pull-based consumer groups with durable offset
 tracking, a dead-letter queue, time-based retention, WebSocket live-tail, Prometheus/Grafana
@@ -150,3 +152,7 @@ each partition can only be written to by one goroutine at a time.
 - **Frontend**: React + TypeScript + Vite, Recharts
 - **Observability**: Prometheus + Grafana
 - **CI**: GitHub Actions — unit tests, integration tests against a real Postgres service container, frontend build
+
+## Credits
+
+Developed by Kabilesh Rajaselvan with contributions from Jennita S.
